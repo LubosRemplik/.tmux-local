@@ -11,6 +11,9 @@ Using [this config](https://github.com/gpakosz/.tmux/) + sourcing local which ca
 1. There is bash script which is helping with `tmux attach` command,   
 Go to `bin` directory and symlink `ln -s ~/.tmux-local/tat` 
 
+1. Another executable scipt for copying=yanking text (vim) to clipboard over terminal with remote,   
+Go to `bin` directory and symlink `ln -s ~/.tmux-local/yank` 
+
 ## Cheat sheet
 
 To be added
