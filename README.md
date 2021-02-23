@@ -80,7 +80,7 @@ Go to `bin` directory and symlink `ln -s ~/.tmux-local/yank`
 Go to `bin` directory and symlink `ln -s ~/.tmux-local/tbell`   
 For usage see .tmux.conf.local
 
-### To consider, resources, learning
+## To consider, resources, learning
 
 This is not used/installed yet
 
