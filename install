@@ -1,5 +1,6 @@
 #!/bin/bash
 echo "Installing tmux with custom configuration and all depenencies"
+sudo apt-get update
 sudo apt-get install tmux xclip -y
 git clone https://github.com/gpakosz/.tmux.git ~/.tmux 2>/dev/null
 ln -sf ~/.tmux/.tmux.conf ~/.tmux.conf
@@ -11,4 +12,4 @@ tmux source-file ~/.tmux.conf
 echo "Done."
 echo "Consider install tmux from source to get latest version"
 echo "Build mosh from https://github.com/mobile-shell/mosh/pull/1104"
-echo "Make sure $EDITOR, $VISUAL and $TERM are set."
+echo "Make sure \$EDITOR, \$VISUAL and \$TERM are set."
