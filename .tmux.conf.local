@@ -389,10 +389,11 @@ bind -n C-Up resize-pane -U 5
 bind & kill-window
 bind x kill-pane
 
-bind C-j choose-tree
-
 # Use vim keybindings in copy mode
 setw -g mode-keys vi
+
+# Agressive mode for nice resizes
+setw -g aggressive-resize on
 
 # Setup 'v' to begin selection as in Vim
 bind-key -T copy-mode-vi v send -X begin-selection
