@@ -1,0 +1,14 @@
+#!/bin/bash
+echo "Installing tmux with custom configuration and all depenencies"
+sudo apt-get install tmux xclip -y
+git clone https://github.com/gpakosz/.tmux.git ~/.tmux 2>/dev/null
+ln -sf ~/.tmux/.tmux.conf ~/.tmux.conf
+git clone https://github.com/LubosRemplik/.tmux-local.git ~/.tmux-local 2>/dev/null
+ln -sf ~/.tmux-local/.tmux.conf.local ~/.tmux.conf.local
+sudo ln -sf ~/.tmux-local/tattach /usr/local/bin/tattach
+sudo ln -sf ~/.tmux-local/yank /usr/local/bin/yank
+sudo ln -sf ~/.tmux-local/tbell /usr/local/bin/tbell
+echo "Done."
+echo "Consider install tmux from source to get latest version"
+echo "Build mosh from https://github.com/mobile-shell/mosh/pull/1104"
+echo "Make sure $EDITOR, $VISUAL and $TERM are set."

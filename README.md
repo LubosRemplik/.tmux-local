@@ -54,7 +54,7 @@ Copy mode uses vi commands for movement
 
 ## Install
 
-Using [this config](https://github.com/gpakosz/.tmux/) + sourcing local which can be founded in this repo
+Use `./install` bash script and/or follow instructions below
 
 1.	Follow instructions [here](https://github.com/gpakosz/.tmux/)
 
