@@ -153,9 +153,9 @@ tmux_conf_theme_terminal_title="#h ❐ #S ● #I #W"
 tmux_conf_theme_window_status_fg="$tmux_conf_theme_colour_3"
 tmux_conf_theme_window_status_bg="$tmux_conf_theme_colour_1"
 tmux_conf_theme_window_status_attr="none"
-tmux_conf_theme_window_status_format="#I #W"
+#tmux_conf_theme_window_status_format="#I #W"
 #tmux_conf_theme_window_status_format="#{circled_window_index} #W"
-#tmux_conf_theme_window_status_format="#I #W#{?window_bell_flag,🔔,}#{?window_zoomed_flag,🔍,}"
+tmux_conf_theme_window_status_format="#I #W#{?window_bell_flag, 🔔,}#{?window_zoomed_flag, 🔍,}"
 
 # window current status style
 #   - built-in variables are:
@@ -170,9 +170,9 @@ tmux_conf_theme_window_status_format="#I #W"
 tmux_conf_theme_window_status_current_fg="$tmux_conf_theme_colour_1"
 tmux_conf_theme_window_status_current_bg="$tmux_conf_theme_colour_4"
 tmux_conf_theme_window_status_current_attr="bold"
-tmux_conf_theme_window_status_current_format="#I #W"
+#tmux_conf_theme_window_status_current_format="#I #W"
 #tmux_conf_theme_window_status_current_format="#{circled_window_index} #W"
-#tmux_conf_theme_window_status_current_format="#I #W#{?window_zoomed_flag,🔍,}"
+tmux_conf_theme_window_status_current_format="#I #W#{?window_zoomed_flag, 🔍,}"
 
 # window activity status style
 tmux_conf_theme_window_status_activity_fg="default"
@@ -182,7 +182,7 @@ tmux_conf_theme_window_status_activity_attr="underscore"
 # window bell status style
 tmux_conf_theme_window_status_bell_fg="$tmux_conf_theme_colour_5"
 tmux_conf_theme_window_status_bell_bg="default"
-tmux_conf_theme_window_status_bell_attr="blink,bold"
+tmux_conf_theme_window_status_bell_attr="underscore,bold"
 
 # window last status style
 tmux_conf_theme_window_status_last_fg="$tmux_conf_theme_colour_4"
@@ -389,11 +389,29 @@ bind -n C-Up resize-pane -U 5
 bind & kill-window
 bind x kill-pane
 
+# new window
+bind n new-window
+
+# next, previous windows
+bind j next-window
+bind k previous-window
+
+# alert bell
+# usage: in separated window run command like
+# rsync -a source target; tbell
+# where tbell is bash script from this repo
+#belows already set as defaults
+#setw -g visual-bell on
+#setw -g bell-action other
+
 # Use vim keybindings in copy mode
 setw -g mode-keys vi
 
 # Agressive mode for nice resizes
 setw -g aggressive-resize on
+
+# display panes numbers timeout
+set -g display-panes-time 5000
 
 # Setup 'v' to begin selection as in Vim
 bind-key -T copy-mode-vi v send -X begin-selection

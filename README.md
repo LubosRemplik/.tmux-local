@@ -7,10 +7,11 @@ Prefix is set to `Ctrl + S` i.e. send-prefix for now, was not able to set it to 
 - `<prefix> + :` enter command mode
 - `<prefix> + [` enter copy mode, use vi commands for movement, `v` for visual select and `y` or `Enter` to execute copy mode
 - `tmux list-commands` list all supported commands
+- `<prefix> + r` reload configuration (configuration reloaded and plugins installed also on tmux start)
 
 ### Sessions
 
-- `tat` bash script to start session named by current directory or attach if exists. 
+- `tattach` bash script to start session named by current directory or attach if exists. 
 - `:new -As mysession` or `tmux new -As mysession` start new session or attach if exists. 
 - `<prefix> + s` or `tmux ls` list sessions
 - `<prefix> + w` list sessions with windows
@@ -23,9 +24,14 @@ Prefix is set to `Ctrl + S` i.e. send-prefix for now, was not able to set it to 
 
 ### Windows
 
-### Panes
+- `<prefix> + c` or `<prefix> + n` open new window 
+- `<prefix> + w` list windows
+- `<prefix> + ,` rename window (it is good to rename long-term windows)
+- `<prefix> + j` and  `<prefix> + k`  move to next / previous window
+- `<prefix> + 0..9` go to window by number (note command `:swap-window -t <position>` for moving windows around
+- `<prefix> + &` close full window, maybe better to use `<prefix> + x` to close pane, when last pane is closed => window is closed
 
-### Others
+### Panes
 
 ## Install
 
@@ -35,10 +41,10 @@ Using [this config](https://github.com/gpakosz/.tmux/) + sourcing local which ca
 
 1.	In home directory `ln -s ~/.tmux-local/.tmux.conf.local`
 
-1.	There is bash script which is helping with `tmux attach` command,   
-Go to `bin` directory and symlink `ln -s ~/.tmux-local/tat` 
+1.	Bash script helping with `tmux attach` command,   
+Go to `bin` directory and symlink `ln -s ~/.tmux-local/tattach` 
 
-1.	Another executable scipt for copying=yanking text (vim) to clipboard over terminal with remote,   
+1.	Bash script copying=yanking text to clipboard over terminal with remote,   
 Go to `bin` directory and symlink `ln -s ~/.tmux-local/yank` 
 
 1.	When using mosh, build from [this PR](https://github.com/mobile-shell/mosh/pull/1104) if not merged to support copy mode 
@@ -51,3 +57,8 @@ Go to `bin` directory and symlink `ln -s ~/.tmux-local/yank`
 	export TERM='xterm-256color'
 
     ```
+
+1.	Bash script for displaying tmux bell,   
+Go to `bin` directory and symlink `ln -s ~/.tmux-local/tbell`   
+For usage see .tmux.conf.local
+
