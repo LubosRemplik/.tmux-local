@@ -4,8 +4,7 @@ Prefix is set to `Ctrl + S` i.e. send-prefix for now, was not able to set it to 
 
 ### Basics
 
-- `<prefix> + :` enter command mode
-- `<prefix> + [` enter copy mode, use vi commands for movement, `v` for visual select and `y` or `Enter` to execute copy mode
+- `<prefix> + :` enter command mode (even when using vi mode most of the time, after [strong suggestions](https://github.com/tmux-plugins/tmux-sensible#options), status-keys are set to emacs. See `man tmux` emacs for more info
 - `tmux list-commands` list all supported commands
 - `<prefix> + r` reload configuration (configuration reloaded and plugins installed also on tmux start)
 
@@ -32,6 +31,26 @@ Prefix is set to `Ctrl + S` i.e. send-prefix for now, was not able to set it to 
 - `<prefix> + &` close full window, maybe better to use `<prefix> + x` to close pane, when last pane is closed => window is closed
 
 ### Panes
+
+- `<prefix> + q` to show pane numbers and when pressing in 5s, it switches the pane
+- `<prefix> + \` horizontal split
+- `<prefix> + -` vertical split
+- `C-k` move up ^1,
+- `C-j` move down ^1,
+- `C-h` move left ^1,
+- `C-l` move right ^1,
+- `<prefix> + z` zoom pane
+- `<prefix> + x` kill pane
+
+^1 when Vim is opened it works with its panes too, requires `vim-tmux-navigator`
+
+### Copy mode
+
+Copy mode uses vi commands for movement
+
+- `<prefix> + [` enter copy mode
+- `v` for visual select 
+- `y` or `Enter` to execute copy mode
 
 ## Install
 
@@ -62,3 +81,8 @@ Go to `bin` directory and symlink `ln -s ~/.tmux-local/yank`
 Go to `bin` directory and symlink `ln -s ~/.tmux-local/tbell`   
 For usage see .tmux.conf.local
 
+### To consider
+
+not installed yet
+
+-	More advanced sessions control https://github.com/tmux-plugins/tmux-sessionist
