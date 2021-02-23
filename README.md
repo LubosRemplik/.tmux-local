@@ -54,7 +54,7 @@ Copy mode uses vi commands for movement
 
 ## Install
 
-Use `./install` bash script and/or follow instructions below
+Use `git clone https://github.com/LubosRemplik/.tmux-local ~/.tmux-local` + `./install` bash script and/or follow instructions below
 
 1.	Follow instructions [here](https://github.com/gpakosz/.tmux/)
 
