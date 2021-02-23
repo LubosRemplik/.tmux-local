@@ -4,7 +4,7 @@ Prefix is set to `Ctrl + S` i.e. send-prefix for now, was not able to set it to 
 
 ### Basics
 
-- `<prefix> + :` enter command mode (even when using vi mode most of the time, after [strong suggestions](https://github.com/tmux-plugins/tmux-sensible#options), status-keys are set to emacs. See `man tmux` emacs for more info
+- `<prefix> + :` enter command mode. Even when using vi mode most of the time, after [strong suggestions](https://github.com/tmux-plugins/tmux-sensible#options), status-keys are set to emacs. See `man tmux` emacs for more info
 - `tmux list-commands` list all supported commands
 - `<prefix> + r` reload configuration (configuration reloaded and plugins installed also on tmux start)
 
@@ -74,15 +74,19 @@ Go to `bin` directory and symlink `ln -s ~/.tmux-local/yank`
 	export EDITOR='vi -e'
 	export VISUAL='vim'
 	export TERM='xterm-256color'
-
     ```
 
 1.	Bash script for displaying tmux bell,   
 Go to `bin` directory and symlink `ln -s ~/.tmux-local/tbell`   
 For usage see .tmux.conf.local
 
-### To consider
+### To consider, resources, learning
 
-not installed yet
+This is not used/installed yet
 
 -	More advanced sessions control https://github.com/tmux-plugins/tmux-sessionist
+-	Having tmux configurations (windows, panes, ...) per project = quick start https://github.com/tmuxinator/tmuxinator
+-	Watch plugins https://github.com/tmux-plugins
+-	Official wiki, repo https://github.com/tmux/tmux/wiki
+-	Nice video tutorials https://thoughtbot.com/upcase/tmux 
+-	Widely used configuraiton + issues with problems solved before https://github.com/gpakosz/.tmux
