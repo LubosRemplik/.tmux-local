@@ -8,6 +8,7 @@ ln -sf ~/.tmux-local/.tmux.conf.local ~/.tmux.conf.local
 sudo ln -sf ~/.tmux-local/tattach /usr/local/bin/tattach
 sudo ln -sf ~/.tmux-local/yank /usr/local/bin/yank
 sudo ln -sf ~/.tmux-local/tbell /usr/local/bin/tbell
+tmux source-file ~/.tmux.conf
 echo "Done."
 echo "Consider install tmux from source to get latest version"
 echo "Build mosh from https://github.com/mobile-shell/mosh/pull/1104"
