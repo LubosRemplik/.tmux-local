@@ -41,6 +41,7 @@ Prefix is set to `Ctrl + S` i.e. send-prefix for now, was not able to set it to 
 - `C-l` move right ^1,
 - `<prefix> + z` zoom pane
 - `<prefix> + x` kill pane
+- `<prefix> + {` and/or `<prefix> + }` swap panes left/right
 
 ^1 when Vim is opened it works with its panes too, requires `vim-tmux-navigator`
 
