@@ -81,6 +81,10 @@ Go to `bin` directory and symlink `ln -s ~/.tmux-local/yank`
 Go to `bin` directory and symlink `ln -s ~/.tmux-local/tbell`   
 For usage see .tmux.conf.local
 
+1.	Bash script for easy tmuxinator start and stop, go to `bin` directory and do symlinks  
+	`ln -s ~/.tmux-local/.tmux.conf.local`  
+	`ln -s ~/.tmux-local/.tmux.conf.local`  
+
 ## To consider, resources, learning
 
 This is not used/installed yet
