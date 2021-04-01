@@ -6,20 +6,20 @@ Prefix is set to `Ctrl + S` i.e. send-prefix for now, was not able to set it to 
 
 - `<prefix> + :` enter command mode. Even when using vi mode most of the time, after [strong suggestions](https://github.com/tmux-plugins/tmux-sensible#options), status-keys are set to emacs. See `man tmux` emacs for more info
 - `tmux list-commands` list all supported commands
-- `<prefix> + r` reload configuration (configuration reloaded and plugins installed also on tmux start)
+- `<prefix> + r` and/or `<prefix> + I` reload configuration (configuration reloaded and plugins installed also on tmux start)
 
 ### Sessions
 
 - `tattach` bash script to start session named by current directory or attach if exists. 
-- `<prefix> + C` (shift + c) prompt for creating a new session by name.
+- `<prefix> + C` prompt for creating a new session by name.
 - `:new -As mysession` or `tmux new -As mysession` start new session or attach if exists. 
 - `<prefix> + @` - promote current pane into a new session.
 - `<prefix> + s` or `tmux ls` list sessions
 - `<prefix> + w` list sessions with windows
 - `<prefix> + $` rename session 
-- `<prefix> + S` (shift + s) switches to the last session.
+- `<prefix> + S` switches to the last session.
 - `<prefix> + (` and `<prefix> + )` move previous / next session
-- `<prefix> + X` (shift + x) kill current session without detaching tmux.
+- `<prefix> + X` kill current session without detaching tmux.
 - `tmux kill-session -t mysession` to kill session
 - `tmux kill-session -a` kill all session but the current (note session is killed when exited until last one)
 - `<prefix> + d` detach client (exit and leave tmux running)
