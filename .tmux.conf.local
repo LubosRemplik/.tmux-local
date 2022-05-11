@@ -486,3 +486,5 @@ set -g @plugin 'tmux-plugins/tmux-sessionist'
 #
 # "$@"
 # # /!\ do not remove the previous line
+
+set-option -g default-shell /bin/zsh
