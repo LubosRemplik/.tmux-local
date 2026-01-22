@@ -394,9 +394,13 @@ bind x kill-pane
 # new window
 bind n new-window
 
+# pane navigation
+bind j select-pane -D
+bind k select-pane -U
+
 # next, previous windows
-bind j next-window
-bind k previous-window
+bind ] next-window
+bind [ previous-window
 
 # alert bell
 # usage: in separated window run command like
