@@ -398,6 +398,9 @@ bind n new-window
 bind j select-pane -D
 bind k select-pane -U
 
+# copy mode
+bind v copy-mode
+
 # next, previous windows
 bind ] next-window
 bind [ previous-window
