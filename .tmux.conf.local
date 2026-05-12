@@ -401,9 +401,9 @@ bind k select-pane -U
 # copy mode
 bind v copy-mode
 
-# next, previous windows
-bind ] next-window
-bind [ previous-window
+# swap panes (replaces default { and })
+bind H swap-pane -U
+bind L swap-pane -D
 
 # alert bell
 # usage: in separated window run command like
