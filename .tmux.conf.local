@@ -391,8 +391,8 @@ bind -n C-Up resize-pane -U 5
 bind & kill-window
 bind x kill-pane
 
-# new window
-bind n new-window
+# new window: name after current folder, split into two vertical panes, focus right
+bind n new-window -c "#{pane_current_path}" -n "#{b:pane_current_path}" \; split-window -h -c "#{pane_current_path}"
 
 # pane navigation
 bind j select-pane -D
@@ -516,3 +516,7 @@ bind-key Space display-popup -E -w 90% -h 90% "~/.cargo/bin/claude-tmux"
 # # /!\ do not remove the previous line
 
 set-option -g default-shell /bin/zsh
+
+# Claude Code agent teams: show per-pane titles on the pane border
+set -g pane-border-status top
+set -g pane-border-format "#{?#{m:[0-9]*,#{pane_current_command}}, #{pane_title} ,}"
