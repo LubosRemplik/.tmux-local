@@ -409,6 +409,10 @@ bind L swap-pane -D
 bind ] next-window
 bind [ previous-window
 
+# move (reorder) current window left/right in the window list
+bind -r < swap-window -t -1 \; previous-window
+bind -r > swap-window -t +1 \; next-window
+
 # alert bell
 # usage: in separated window run command like
 # rsync -a source target; tbell
