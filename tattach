@@ -1,31 +1,60 @@
 #!/bin/sh
 #
 # Attach or create tmux session named the same as current directory.
+#
+# When the tmux server is not yet running, start it bare and wait for
+# tmux-continuum to finish restoring before attaching. Creating a session
+# with `new-session -As` in that window would race the restore and leave
+# you with an empty session.
 
 path_name="$(basename "$PWD" | tr . -)"
 session_name=${1-$path_name}
 
-not_in_tmux() {
-  [ -z "$TMUX" ]
+server_running() {
+  tmux info >/dev/null 2>&1
 }
 
 session_exists() {
-  tmux has-session -t "=$session_name"
+  tmux has-session -t "=$session_name" 2>/dev/null
+}
+
+any_session_exists() {
+  [ -n "$(tmux list-sessions -F '#S' 2>/dev/null)" ]
+}
+
+wait_for_continuum_restore() {
+  # continuum_restore.sh sleeps 1s then runs resurrect; poll up to ~8s.
+  i=0
+  while [ "$i" -lt 16 ]; do
+    if any_session_exists; then
+      return 0
+    fi
+    sleep 0.5
+    i=$((i + 1))
+  done
+  return 1
 }
 
 create_detached_session() {
   (TMUX='' tmux new-session -Ad -s "$session_name")
 }
 
-create_if_needed_and_attach() {
-  if not_in_tmux; then
-    tmux new-session -As "$session_name"
-  else
-    if ! session_exists; then
-      create_detached_session
-    fi
-    tmux switch-client -t "$session_name"
+if [ -z "$TMUX" ]; then
+  if ! server_running; then
+    tmux start-server
+    wait_for_continuum_restore
   fi
-}
 
-create_if_needed_and_attach
+  if session_exists; then
+    tmux attach -t "$session_name"
+  elif any_session_exists; then
+    tmux attach
+  else
+    tmux new-session -As "$session_name"
+  fi
+else
+  if ! session_exists; then
+    create_detached_session
+  fi
+  tmux switch-client -t "$session_name"
+fi
