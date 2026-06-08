@@ -157,7 +157,7 @@ tmux_conf_theme_window_status_bg="$tmux_conf_theme_colour_2"
 tmux_conf_theme_window_status_attr="none"
 #tmux_conf_theme_window_status_format="#I #W"
 #tmux_conf_theme_window_status_format="#{circled_window_index} #W"
-tmux_conf_theme_window_status_format="#I #W#{?window_bell_flag, 🔔,}#{?window_zoomed_flag, 🔍,}"
+tmux_conf_theme_window_status_format="#{?@cc_status,#{@cc_status} ,}#I #W#{?window_bell_flag, 🔔,}#{?window_zoomed_flag, 🔍,}"
 
 # window current status style
 #   - built-in variables are:
@@ -174,7 +174,7 @@ tmux_conf_theme_window_status_current_bg="$tmux_conf_theme_colour_17"
 tmux_conf_theme_window_status_current_attr="bold"
 #tmux_conf_theme_window_status_current_format="#I #W"
 #tmux_conf_theme_window_status_current_format="#{circled_window_index} #W"
-tmux_conf_theme_window_status_current_format="#I #W#{?window_zoomed_flag, 🔍,}"
+tmux_conf_theme_window_status_current_format="#{?@cc_status,#{@cc_status} ,}#I #W#{?window_zoomed_flag, 🔍,}"
 
 # window activity status style
 tmux_conf_theme_window_status_activity_fg="default"
@@ -405,6 +405,10 @@ bind v copy-mode
 bind H swap-pane -U
 bind L swap-pane -D
 
+# next, previous windows
+bind ] next-window
+bind [ previous-window
+
 # alert bell
 # usage: in separated window run command like
 # rsync -a source target; tbell
@@ -470,6 +474,7 @@ set -g @plugin 'christoomey/vim-tmux-navigator'
 set -g @plugin 'tmux-plugins/tmux-resurrect'
 set -g @plugin 'tmux-plugins/tmux-continuum'
 set -g @continuum-restore 'on'
+set -g @continuum-boot 'on'
 set -g @continuum-save-interval '5'
 set -g @resurrect-capture-pane-contents 'on'
 set -g @resurrect-processes 'ssh psql mysql sqlite3 vim nvim "git log" claude'
@@ -481,7 +486,7 @@ set -g @plugin 'laktak/extrakto'
 
 # floating popup terminal (prefix + a)
 set -g @plugin 'omerxx/tmux-floax'
-set -g @floax-bind 'a'
+set -g @floax-bind 'A'
 set -g @floax-width '80%'
 set -g @floax-height '80%'
 set -g @floax-border-color 'default'
@@ -520,3 +525,19 @@ set-option -g default-shell /bin/zsh
 # Claude Code agent teams: show per-pane titles on the pane border
 set -g pane-border-status top
 set -g pane-border-format "#{?#{m:[0-9]*,#{pane_current_command}}, #{pane_title} ,}"
+
+# prompt for session name when creating a new session
+bind c command-prompt -p new-session 'new-session -s "%%"'
+
+# kill current session (with confirmation)
+bind X confirm-before -p "kill-session #S? (y/n)" kill-session
+
+# when a session is destroyed, switch to next session instead of detaching
+set -g detach-on-destroy next
+
+# session picker sorted alphabetically by name
+bind s choose-tree -Zs -O name
+
+# Claude Code: keep window-status icons fresh + quick fuzzy session jumper
+run-shell -b "~/.claude/scripts/tmux-claude-status.sh 3 >/dev/null 2>&1"
+bind a display-popup -E -w 70% -h 50% "~/.claude/scripts/tmux-claude-switcher.sh"
