@@ -389,7 +389,7 @@ bind -n C-Down resize-pane -D 5
 bind -n C-Up resize-pane -U 5
 
 bind & kill-window
-bind x kill-pane
+bind x kill-window
 
 # new window: name after current folder; left pane full height (focused), right pane split 50/50 top/bottom
 bind n new-window -c "#{pane_current_path}" -n "#{b:pane_current_path}" \; split-window -h -c "#{pane_current_path}" \; split-window -v -c "#{pane_current_path}" \; select-pane -L
@@ -530,7 +530,7 @@ set -g pane-border-format "#{?#{m:[0-9]*,#{pane_current_command}}, #{pane_title}
 bind c command-prompt -p new-session 'new-session -s "%%"'
 
 # kill current session (with confirmation)
-bind X confirm-before -p "kill-session #S? (y/n)" kill-session
+bind X kill-session
 
 # when a session is destroyed, switch to next session instead of detaching
 set -g detach-on-destroy next
