@@ -547,8 +547,8 @@ bind X kill-session
 set -g detach-on-destroy next
 
 # session picker sorted alphabetically by name
-bind s choose-tree -Zs -O name
+bind a choose-tree -Zs -O name
 
 # Claude Code: keep window-status icons fresh + quick fuzzy session jumper
 run-shell -b "~/.claude/scripts/tmux-claude-status.sh 3 >/dev/null 2>&1"
-bind a display-popup -E -w 70% -h 50% "~/.claude/scripts/tmux-claude-switcher.sh"
+bind s display-popup -E -w 70% -h 50% "~/.claude/scripts/tmux-claude-switcher.sh"
