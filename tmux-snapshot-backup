@@ -1,0 +1,24 @@
+#!/bin/sh
+#
+# Runs every 10 minutes via ~/Library/LaunchAgents/Tmux.SnapshotBackup.plist.
+# Copies the current valid resurrect snapshot outside the live directory so a
+# bad save can never destroy the only good copy.
+
+dir="$HOME/.tmux/resurrect"
+backup_dir="$HOME/.tmux/resurrect-backup"
+keep=50
+
+target=$(readlink "$dir/last" 2>/dev/null)
+[ -n "$target" ] || exit 0
+src="$dir/$target"
+[ -s "$src" ] || exit 0
+grep -q '^pane' "$src" || exit 0
+
+mkdir -p "$backup_dir"
+[ -f "$backup_dir/$target" ] || cp -p "$src" "$backup_dir/$target"
+
+ls -t "$backup_dir"/tmux_resurrect_*.txt 2>/dev/null |
+  tail -n "+$((keep + 1))" |
+  while read -r f; do
+    rm -f "$f"
+  done

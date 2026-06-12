@@ -1,0 +1,32 @@
+#!/bin/sh
+#
+# tmux-resurrect pre-restore-all hook (also safe to run standalone).
+#
+# A save interrupted by shutdown can leave `last` pointing at an empty or
+# corrupted snapshot, so the restore after reboot brings back nothing.
+# Repoint `last` to the newest snapshot that actually contains panes.
+
+dir="${1:-$HOME/.tmux/resurrect}"
+last="$dir/last"
+log="$dir/validate.log"
+
+valid() {
+  [ -s "$1" ] || return 1
+  grep -q '^pane' "$1" || return 1
+  [ -z "$(sort "$1" | uniq -d)" ]
+}
+
+if [ -e "$last" ] && valid "$last"; then
+  exit 0
+fi
+
+for f in $(ls -t "$dir"/tmux_resurrect_*.txt 2>/dev/null); do
+  if valid "$f"; then
+    ln -fs "$(basename "$f")" "$last"
+    printf '%s repointed last -> %s\n' \
+      "$(date '+%Y-%m-%dT%H:%M:%S')" "$(basename "$f")" >> "$log"
+    exit 0
+  fi
+done
+
+exit 0

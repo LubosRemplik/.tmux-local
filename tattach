@@ -24,6 +24,10 @@ any_session_exists() {
 
 wait_for_continuum_restore() {
   # continuum_restore.sh sleeps 1s then runs resurrect; poll up to ~8s.
+  # The initial sleep also keeps our polling `tmux` processes out of the
+  # window where continuum counts tmux processes on startup — extra clients
+  # at that moment make it silently skip the restore.
+  sleep 1
   i=0
   while [ "$i" -lt 16 ]; do
     if any_session_exists; then

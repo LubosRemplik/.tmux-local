@@ -485,10 +485,23 @@ set -g @plugin 'tmux-plugins/tmux-continuum'
 # and creates a second, split-brain save set.
 set -g @resurrect-dir '~/.tmux/resurrect'
 set -g @continuum-restore 'on'
-set -g @continuum-boot 'on'
+# Boot terminal must stay off: the auto-opened Terminal raced .zshrc's tmux
+# autostart at login and continuum then skipped its restore entirely (it treats
+# any extra tmux client process at startup as "another tmux server").
+set -g @continuum-boot 'off'
 set -g @continuum-save-interval '5'
 set -g @resurrect-capture-pane-contents 'on'
 set -g @resurrect-processes 'ssh psql mysql sqlite3 vim nvim "git log" claude'
+# Snapshot guards. post-save-layout dedupes/rejects corrupted saves (concurrent
+# saves from multiple clients interleave duplicate lines; a save running during
+# shutdown produces an empty dump; the first save after boot would replace a
+# full snapshot with just the default session). pre-restore-all repoints `last`
+# to the newest valid snapshot when it ends up on an empty/corrupted file.
+set -g @resurrect-hook-post-save-layout '/Users/lubos/.tmux-local/resurrect-validate-save'
+set -g @resurrect-hook-pre-restore-all '/Users/lubos/.tmux-local/resurrect-sanitize-last'
+# Keep the server alive after a bare `tmux start-server` (tattach) so it does
+# not exit before continuum restore re-creates the sessions.
+set -s exit-empty off
 set -g @plugin 'tmux-plugins/tmux-sessionist'
 
 # fuzzy-pick text (URLs, paths, hashes, words) from pane contents

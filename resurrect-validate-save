@@ -1,0 +1,58 @@
+#!/bin/sh
+#
+# tmux-resurrect post-save-layout hook. Receives the freshly written snapshot
+# as $1, before resurrect decides whether to point `last` at it.
+#
+# Repairs or rejects corrupted snapshots:
+#   - concurrent saves (one per attached client after wake) interleave the
+#     same dump twice -> drop exact duplicate lines
+#   - a save running while the machine shuts down dumps nothing -> reject
+#   - the first save after boot contains only the default session and would
+#     bury the real state -> reject
+#
+# Rejecting = overwriting the new file with the content of `last`; resurrect
+# then sees no difference, deletes the new file and keeps `last` untouched.
+
+DEFAULT_SESSION="lubos"
+
+file="$1"
+[ -n "$file" ] || exit 0
+[ -f "$file" ] || exit 0
+
+dir=$(dirname "$file")
+last="$dir/last"
+log="$dir/validate.log"
+
+log_msg() {
+  printf '%s %s\n' "$(date '+%Y-%m-%dT%H:%M:%S')" "$1" >> "$log"
+}
+
+reject() {
+  log_msg "rejected $(basename "$file"): $1"
+  if [ -e "$last" ]; then
+    cat "$last" > "$file"
+  else
+    : > "$file"
+  fi
+  exit 0
+}
+
+if [ -n "$(sort "$file" | uniq -d)" ]; then
+  awk '!seen[$0]++' "$file" > "$file.dedup" && mv "$file.dedup" "$file"
+  log_msg "deduplicated $(basename "$file")"
+fi
+
+grep -q '^pane' "$file" || reject "no pane lines"
+
+if [ -e "$last" ]; then
+  new_sessions=$(awk -F'\t' '$1 == "window" { print $2 }' "$file" | sort -u)
+  if [ "$new_sessions" = "$DEFAULT_SESSION" ]; then
+    last_other=$(awk -F'\t' -v s="$DEFAULT_SESSION" \
+      '$1 == "window" && $2 != s { print $2 }' "$last" | sort -u)
+    if [ -n "$last_other" ]; then
+      reject "only default session '$DEFAULT_SESSION' while last has: $(printf '%s' "$last_other" | tr '\n' ' ')"
+    fi
+  fi
+fi
+
+exit 0
