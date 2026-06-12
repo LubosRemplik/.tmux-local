@@ -541,8 +541,10 @@ set -g pane-border-format "#{?#{m:[0-9]*,#{pane_current_command}}, #{pane_title}
 bind c command-prompt -p new-session 'new-session -s "%%"'
 
 # auto-register new sessions in workspaces.conf with the workspace of the
-# window they were created in (inferred from the client's previous session)
+# window they were created in (inferred from the client's previous session);
+# auto-registered entries (marked `# auto`) are removed again on session close
 set-hook -g client-session-changed 'run-shell -b "~/.tmux-local/workspaces-register \"#{client_session}\" \"#{client_last_session}\" >/dev/null 2>&1"'
+set-hook -g session-closed 'run-shell -b "~/.tmux-local/workspaces-unregister \"#{hook_session_name}\" >/dev/null 2>&1"'
 
 # kill current session (with confirmation)
 bind X kill-session

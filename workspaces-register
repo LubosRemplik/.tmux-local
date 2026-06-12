@@ -18,9 +18,11 @@ session_listed "$session" && exit 0
 ws="$(workspace_for_session "$last")" || exit 0
 
 # Nový záznam vlož před `*` default, ať zůstává poslední; bez defaultu
-# připoj na konec. Zápis přes temp soubor vedle configu (atomický mv).
+# připoj na konec. Marker `# auto` odlišuje auto-registrované záznamy od
+# ručních — jen ty auto smí workspaces-unregister smazat při zavření session.
+# Zápis přes temp soubor vedle configu (atomický mv).
 tmp="${WORKSPACES_CONF}.tmp.$$"
-awk -v entry="$session $ws" '
+awk -v entry="$session $ws # auto" '
   !inserted && $1 == "*" { print entry; inserted = 1 }
   { print }
   END { if (!inserted) print entry }

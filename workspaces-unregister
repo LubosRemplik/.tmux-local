@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+# Hook session-closed: smaž session z workspaces.conf — ale jen záznamy
+# s markerem `# auto` (zapsané přes workspaces-register). Ruční mapování
+# musí přežít zavření session i restart serveru. Argument: <session_name>.
+set -u
+
+session="${1:-}"
+
+# shellcheck source=workspaces.sh
+. "$HOME/.tmux-local/workspaces.sh"
+
+[[ -z "$session" ]] && exit 0
+[[ -w "$WORKSPACES_CONF" ]] || exit 0
+
+tmp="${WORKSPACES_CONF}.tmp.$$"
+awk -v s="$session" '!($1 == s && /# auto$/)' "$WORKSPACES_CONF" > "$tmp" \
+  && mv "$tmp" "$WORKSPACES_CONF"
