@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# Hook client-session-changed: když klient (Ghostty okno) poprvé zobrazí
+# session, která ještě není ve workspaces.conf, zapiš ji tam s workspace
+# odvozenou z předchozí session klienta — tj. s workspace okna, ve kterém
+# session vznikla. Volá se s argumenty: <client_session> <client_last_session>.
+set -u
+
+session="${1:-}"
+last="${2:-}"
+
+# shellcheck source=workspaces.sh
+. "$HOME/.tmux-local/workspaces.sh"
+
+[[ -z "$session" ]] && exit 0
+session_listed "$session" && exit 0
+[[ -z "$last" ]] && exit 0
+[[ "$last" == "$session" ]] && exit 0
+ws="$(workspace_for_session "$last")" || exit 0
+
+# Nový záznam vlož před `*` default, ať zůstává poslední; bez defaultu
+# připoj na konec. Zápis přes temp soubor vedle configu (atomický mv).
+tmp="${WORKSPACES_CONF}.tmp.$$"
+awk -v entry="$session $ws" '
+  !inserted && $1 == "*" { print entry; inserted = 1 }
+  { print }
+  END { if (!inserted) print entry }
+' "$WORKSPACES_CONF" > "$tmp" && mv "$tmp" "$WORKSPACES_CONF"
