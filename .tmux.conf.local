@@ -229,10 +229,10 @@ tmux_conf_theme_right_separator_sub="|"
 #     - #{username}
 #     - #{username_ssh}
 tmux_conf_theme_status_left=" ❐ #S "
-# ⚙️/⏳ = počty working/waiting Claude sessions; globální opce @cc_working a
+# 🔄/⏳ = počty working/waiting Claude sessions; globální opce @cc_working a
 # @cc_waiting plní daemon tmux-claude-status.sh (viz run-shell níže), při 0 je
 # unsetne, takže se sekce skryje.
-tmux_conf_theme_status_right=" #{?#{@cc_working},⚙️ #{@cc_working} ,}#{?#{@cc_waiting},⏳ #{@cc_waiting} ,}#{pairing}#{prefix} | #{username}@#{hostname_full} |#{cpu_bg_color} CPU: #{cpu_percentage}"
+tmux_conf_theme_status_right=" #{?#{@cc_working},🔄 #{@cc_working} ,}#{?#{@cc_waiting},⏳ #{@cc_waiting} ,}#{pairing}#{prefix} | #{username}@#{hostname_full} |#{cpu_bg_color} CPU: #{cpu_percentage}"
 
 # status left style
 tmux_conf_theme_status_left_fg="$tmux_conf_theme_colour_6,$tmux_conf_theme_colour_7,$tmux_conf_theme_colour_8"
