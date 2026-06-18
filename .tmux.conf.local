@@ -491,7 +491,12 @@ set -g @continuum-restore 'on'
 set -g @continuum-boot 'off'
 set -g @continuum-save-interval '5'
 set -g @resurrect-capture-pane-contents 'on'
-set -g @resurrect-processes 'ssh psql mysql sqlite3 vim nvim "git log" claude'
+# claude panes launched via the `claude-session` shell function carry a stable
+# `--session-id <uuid>` as their last argv tokens. The inline strategy rewrites
+# that launch form into a `--resume <uuid>` on restore, so resurrect reconnects
+# to the original conversation (with remote control) instead of starting fresh.
+# Plain `claude` stays in the list to restore the already-resumed form verbatim.
+set -g @resurrect-processes 'ssh psql mysql sqlite3 vim nvim "git log" claude "~--session-id->claude --remote-control --dangerously-skip-permissions --resume *"'
 # Snapshot guards. post-save-layout dedupes/rejects corrupted saves (concurrent
 # saves from multiple clients interleave duplicate lines; a save running during
 # shutdown produces an empty dump; the first save after boot would replace a
