@@ -470,6 +470,11 @@ tmux_conf_update_plugins_on_launch=true
 #   - false
 tmux_conf_update_plugins_on_reload=true
 
+# never auto-uninstall plugins: __apply_plugins unsets @plugin after a
+# successful apply, so a second invocation sees "no plugins enabled" and
+# rm -rf's ~/.tmux/plugins (this wiped tmux-resurrect on 2026-07-27)
+tmux_conf_uninstall_plugins_on_reload=false
+
 # /!\ do not add set -g @plugin 'tmux-plugins/tpm'
 # /!\ do not add run '~/.tmux/plugins/tpm/tpm'
 
