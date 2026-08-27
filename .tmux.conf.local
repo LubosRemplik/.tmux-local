@@ -587,3 +587,4 @@ bind s display-popup -E -w 70% -h 50% "~/.claude/scripts/tmux-claude-switcher.sh
 # daemon tick (a quick glance shorter than the tick would otherwise be missed).
 set-hook -g after-select-window 'run-shell -b "~/.claude/scripts/tmux-claude-status.sh --once >/dev/null 2>&1"'
 set-hook -g client-session-changed 'run-shell -b "~/.claude/scripts/tmux-claude-status.sh --once >/dev/null 2>&1"'
+set-hook -g client-focus-in 'run-shell -b "~/.claude/scripts/tmux-claude-status.sh --once >/dev/null 2>&1"'
