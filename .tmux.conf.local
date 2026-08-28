@@ -576,8 +576,10 @@ bind X kill-session
 # when a session is destroyed, switch to next session instead of detaching
 set -g detach-on-destroy next
 
-# session picker sorted alphabetically by name
-bind a choose-tree -Zs -O name
+# session picker sorted alphabetically by name (moved off `a` for archive;
+# takes over `q` — display-panes moves to Shift+Q)
+bind q choose-tree -Zs -O name
+bind Q display-panes
 
 # Claude Code: keep window-status icons fresh + quick fuzzy session jumper
 run-shell -b "~/.claude/scripts/tmux-claude-status.sh 3 >/dev/null 2>&1"
@@ -585,7 +587,7 @@ bind s display-popup -E -w 70% -h 50% "~/.claude/scripts/tmux-claude-switcher.sh
 # Archive the current window (Claude session ends, resumable) / recover popup.
 # The recover popup takes r (the frequent action); the oh-my-tmux config
 # reload that lived there moves to Shift+T.
-bind Z run-shell "~/.claude/scripts/tmux-claude-archive.sh archive"
+bind a run-shell "~/.claude/scripts/tmux-claude-archive.sh archive"
 bind r display-popup -E -w 70% -h 50% "~/.claude/scripts/tmux-claude-archive.sh recover"
 bind T source-file ~/.tmux.conf \; display-message "~/.tmux.conf reloaded"
 # Re-stamp immediately on window/session switch so a finished session flips
