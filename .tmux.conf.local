@@ -582,6 +582,9 @@ bind a choose-tree -Zs -O name
 # Claude Code: keep window-status icons fresh + quick fuzzy session jumper
 run-shell -b "~/.claude/scripts/tmux-claude-status.sh 3 >/dev/null 2>&1"
 bind s display-popup -E -w 70% -h 50% "~/.claude/scripts/tmux-claude-switcher.sh"
+# Archive the current window (Claude session ends, resumable) / recover popup
+bind Z run-shell "~/.claude/scripts/tmux-claude-archive.sh archive"
+bind R display-popup -E -w 70% -h 50% "~/.claude/scripts/tmux-claude-archive.sh recover"
 # Re-stamp immediately on window/session switch so a finished session flips
 # 🟠 -> ✅ the moment its window gets focus, not up to 3 s later on the next
 # daemon tick (a quick glance shorter than the tick would otherwise be missed).
