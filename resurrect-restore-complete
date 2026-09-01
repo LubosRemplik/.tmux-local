@@ -1,0 +1,8 @@
+#!/bin/sh
+#
+# tmux-resurrect post-restore-all hook. Removes the restore-in-progress
+# guard that resurrect-sanitize-last (pre-restore-all) created, re-enabling
+# autosaves (resurrect-validate-save rejects saves while the guard exists).
+
+dir="${1:-$HOME/.tmux/resurrect}"
+rm -f "$dir/restore-in-progress"

@@ -506,10 +506,15 @@ set -g @resurrect-processes 'ssh psql mysql sqlite3 vim nvim "git log" claude "~
 # Snapshot guards. post-save-layout dedupes/rejects corrupted saves (concurrent
 # saves from multiple clients interleave duplicate lines; a save running during
 # shutdown produces an empty dump; the first save after boot would replace a
-# full snapshot with just the default session). pre-restore-all repoints `last`
-# to the newest valid snapshot when it ends up on an empty/corrupted file.
+# full snapshot with just the default session; a save firing mid-restore would
+# capture the half-restored state and repoint `last` under restore.sh, which
+# re-resolves it for every phase — this wiped window names, layouts and
+# processes on 2026-09-01). pre-restore-all repoints `last` to the newest valid
+# snapshot when it ends up on an empty/corrupted file and sets the
+# restore-in-progress guard; post-restore-all clears the guard again.
 set -g @resurrect-hook-post-save-layout '/Users/lubos/.tmux-local/resurrect-validate-save'
 set -g @resurrect-hook-pre-restore-all '/Users/lubos/.tmux-local/resurrect-sanitize-last'
+set -g @resurrect-hook-post-restore-all '/Users/lubos/.tmux-local/resurrect-restore-complete'
 # Keep the server alive after a bare `tmux start-server` (tattach) so it does
 # not exit before continuum restore re-creates the sessions.
 set -s exit-empty off

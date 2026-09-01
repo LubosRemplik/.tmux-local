@@ -5,10 +5,20 @@
 # A save interrupted by shutdown can leave `last` pointing at an empty or
 # corrupted snapshot, so the restore after reboot brings back nothing.
 # Repoint `last` to the newest snapshot that actually contains panes.
+#
+# Also drops a restore-in-progress guard: the post-boot restore can take
+# longer than the continuum save interval, and a save firing mid-restore
+# repoints `last` under restore.sh (which re-resolves it for every phase),
+# so window names, layouts and processes then load from the half-restored
+# snapshot (this degraded the restore on 2026-09-01). While the guard is
+# fresh, resurrect-validate-save rejects every save; the post-restore-all
+# hook (resurrect-restore-complete) removes it.
 
 dir="${1:-$HOME/.tmux/resurrect}"
 last="$dir/last"
 log="$dir/validate.log"
+
+touch "$dir/restore-in-progress"
 
 valid() {
   [ -s "$1" ] || return 1

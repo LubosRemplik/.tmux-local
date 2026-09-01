@@ -9,6 +9,10 @@
 #   - a save running while the machine shuts down dumps nothing -> reject
 #   - the first save after boot contains only the default session and would
 #     bury the real state -> reject
+#   - a save firing while a restore is still replaying panes would capture
+#     the half-restored state and repoint `last` mid-restore -> reject
+#     while the restore-in-progress guard (set by resurrect-sanitize-last,
+#     cleared by resurrect-restore-complete) is fresh
 #
 # Rejecting = overwriting the new file with the content of `last`; resurrect
 # then sees no difference, deletes the new file and keeps `last` untouched.
@@ -36,6 +40,17 @@ reject() {
   fi
   exit 0
 }
+
+guard="$dir/restore-in-progress"
+if [ -f "$guard" ]; then
+  guard_ts=$(stat -f %m "$guard" 2>/dev/null || echo 0)
+  if [ $(($(date +%s) - guard_ts)) -lt 1800 ]; then
+    reject "restore in progress"
+  fi
+  # a crashed restore left the guard behind; do not block saves forever
+  rm -f "$guard"
+  log_msg "removed stale restore-in-progress guard"
+fi
 
 if [ -n "$(sort "$file" | uniq -d)" ]; then
   awk '!seen[$0]++' "$file" > "$file.dedup" && mv "$file.dedup" "$file"

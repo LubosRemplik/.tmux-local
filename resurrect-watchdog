@@ -1,0 +1,66 @@
+#!/bin/sh
+#
+# Runs every 5 minutes via ~/Library/LaunchAgents/Tmux.ResurrectWatchdog.plist.
+#
+# Guards against two known autosave failure modes:
+#
+# 1) Missing hook: a config reload rebuilds status-right from the theme, and
+#    when __apply_plugins races the @plugin unset (see
+#    tmux_conf_uninstall_plugins_on_reload comment in ~/.tmux.conf.local) tpm
+#    never re-runs, so the continuum_save.sh interpolation is silently lost
+#    (this killed saves 2026-07-27..2026-08-06). Re-running continuum.tmux
+#    re-injects the hook; it is safe mid-session because auto-restore only
+#    triggers within seconds of server start.
+#
+# 2) Hook present but not firing: continuum saves only when a client renders
+#    the status line, so a detached server never autosaves (this killed saves
+#    2026-08-12..2026-08-17). Continuum stamps @continuum-save-last-timestamp
+#    on every attempt, so a stale stamp means it is not firing for any reason;
+#    run resurrect's save.sh directly. resurrect-validate-save still rejects
+#    degenerate snapshots, and identical ones are deleted by resurrect itself.
+
+log="$HOME/.tmux/resurrect/watchdog.log"
+plugin="$HOME/.tmux/plugins/tmux-continuum/continuum.tmux"
+resurrect_save="$HOME/.tmux/plugins/tmux-resurrect/scripts/save.sh"
+stale_after=900
+
+log_msg() {
+  echo "$(date '+%Y-%m-%dT%H:%M:%S') $1" >> "$log"
+}
+
+tmux ls >/dev/null 2>&1 || exit 0
+
+if [ -x "$plugin" ]; then
+  status_right=$(tmux show -gv status-right 2>/dev/null)
+  case "$status_right" in
+    *continuum_save.sh*) ;;
+    *)
+      "$plugin" >/dev/null 2>&1
+      log_msg "continuum save hook was missing, re-injected"
+      ;;
+  esac
+fi
+
+[ -x "$resurrect_save" ] || exit 0
+
+# Never force a save while a restore is replaying the snapshot (guard set by
+# resurrect-sanitize-last, cleared by resurrect-restore-complete). A stale
+# guard is cleaned up by resurrect-validate-save, so only honor a fresh one.
+guard="$HOME/.tmux/resurrect/restore-in-progress"
+if [ -f "$guard" ]; then
+  guard_ts=$(stat -f %m "$guard" 2>/dev/null || echo 0)
+  [ $(($(date +%s) - guard_ts)) -lt 1800 ] && exit 0
+fi
+
+last_ts=$(tmux show -gv @continuum-save-last-timestamp 2>/dev/null)
+case "$last_ts" in
+  ''|*[!0-9]*) last_ts=0 ;;
+esac
+
+now=$(date +%s)
+age=$((now - last_ts))
+[ "$age" -gt "$stale_after" ] || exit 0
+
+"$resurrect_save" quiet >/dev/null 2>&1
+tmux set -g @continuum-save-last-timestamp "$now" 2>/dev/null
+log_msg "autosave stale (last continuum attempt ${age}s ago), forced resurrect save"
