@@ -562,9 +562,10 @@ bind-key Space display-popup -E -w 90% -h 90% "~/.cargo/bin/claude-tmux"
 
 set-option -g default-shell /bin/zsh
 
-# Claude Code agent teams: show per-pane titles on the pane border
+# Claude Code agent teams: show per-pane titles on the pane border;
+# @claude_info (model/effort) is published by the Claude Code statusline hook
 set -g pane-border-status top
-set -g pane-border-format "#{?#{m:[0-9]*,#{pane_current_command}}, #{pane_title} ,}"
+set -g pane-border-format "#{?#{m:[0-9]*,#{pane_current_command}}, #{pane_title}#{?@claude_info, ⟨#{@claude_info}⟩,} ,}"
 
 # prompt for session name when creating a new session
 bind c command-prompt -p new-session 'new-session -s "%%"'
