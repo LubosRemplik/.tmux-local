@@ -562,6 +562,10 @@ bind-key Space display-popup -E -w 90% -h 90% "~/.cargo/bin/claude-tmux"
 
 set-option -g default-shell /bin/zsh
 
+# tmux 3.8 ships builtin light/dark themes (theme=detect) which turn popup
+# backgrounds grey; keep the pre-3.8 terminal ANSI colours
+set -g theme terminal
+
 # Claude Code agent teams: show per-pane titles on the pane border;
 # @claude_info (model/effort) is published by the Claude Code statusline hook
 set -g pane-border-status top
