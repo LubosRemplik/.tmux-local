@@ -629,3 +629,9 @@ set-environment -gu CLAUDE_PID
 # message — hit it again after they finish. Explicit model:
 # tmux-claude-model.sh <alias>.
 bind m run-shell -b "~/.claude/scripts/tmux-claude-model.sh"
+
+# (Re)connect Remote Control in ALL running Claude sessions, oldest first, each
+# named after its Claude session (prefix + R, "R" as remote) — run after
+# switching accounts. Connected sessions are disconnected and reconnected;
+# only idle ones are touched, the rest are listed as skipped.
+bind R run-shell -b "~/.claude/scripts/tmux-claude-remote.sh"
