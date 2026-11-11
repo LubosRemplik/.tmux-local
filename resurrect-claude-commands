@@ -1,0 +1,204 @@
+#!/usr/bin/env python3
+#
+# Rewrites the Claude Code pane commands in a tmux-resurrect snapshot into a
+# shell-safe `claude <original options> --resume <session uuid>`.
+#
+# resurrect saves each pane's command as the space-joined `ps` output and
+# replays it through send-keys, so argument boundaries are lost:
+#   - `claude --resume "EM2 Overview"` comes back as `--resume EM2` plus the
+#     prompt `Overview`, which gets submitted after the resume picker
+#   - a session started with an initial prompt (`claude ... "Run the skill"`)
+#     resubmits that prompt on every restore
+# The exact argv is read from the live process (KERN_PROCARGS2) and the session
+# id from ~/.claude/sessions/<pid>.json. Options that pick or name a session,
+# and the positional prompt, are dropped; every kept argument is quoted. A
+# session without a transcript (no turn yet) has nothing to resume and comes
+# back as a fresh `claude <original options>`.
+#
+# Usage: resurrect-claude-commands <snapshot file>   (edits it in place)
+
+import ctypes
+import json
+import os
+import pathlib
+import re
+import shlex
+import subprocess
+import sys
+
+SESSION_OPTIONS = {
+    "-r", "--resume", "-c", "--continue", "--session-id", "-n", "--name",
+    "--fork-session", "-w", "--worktree", "--from-pr", "--teleport",
+}
+UUID = re.compile(r"^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$")
+FLAG, REQUIRED, OPTIONAL, VARIADIC = "flag", "required", "optional", "variadic"
+
+
+def parse_option_arities(help_text):
+    arities = {}
+    for line in help_text.splitlines():
+        match = re.match(r"^  (-[^ ].*?)(?:  +|$)", line)
+        if not match:
+            continue
+        spec = match.group(1)
+        value = re.search(r"([<\[])[^>\]]*?(\.\.\.)?[>\]]", spec)
+        if value is None:
+            arity = FLAG
+        elif value.group(2):
+            arity = VARIADIC
+        elif value.group(1) == "<":
+            arity = REQUIRED
+        else:
+            arity = OPTIONAL
+        names = spec[:value.start()] if value else spec
+        for name in re.split(r",\s*", names.strip()):
+            arities[name] = arity
+    return arities
+
+
+def split_options(argv, arities):
+    """Yields (option, [values]) for each option; positional args yield (None, [arg])."""
+    i = 1
+    while i < len(argv):
+        token = argv[i]
+        i += 1
+        if token == "--":
+            for rest in argv[i:]:
+                yield None, [rest]
+            return
+        if not token.startswith("-") or token == "-":
+            yield None, [token]
+            continue
+        if "=" in token and token.startswith("--"):
+            yield token.split("=", 1)[0], [token]
+            continue
+        arity = arities.get(token, FLAG)
+        values = []
+        if arity == REQUIRED and i < len(argv):
+            values.append(argv[i])
+            i += 1
+        elif arity == OPTIONAL and i < len(argv) and not argv[i].startswith("-"):
+            values.append(argv[i])
+            i += 1
+        elif arity == VARIADIC:
+            while i < len(argv) and not argv[i].startswith("-"):
+                values.append(argv[i])
+                i += 1
+        yield token, [token] + values
+
+
+def quote(arg):
+    if re.search(r"[\x00-\x1f\x7f]", arg):
+        escaped = (arg.replace("\\", "\\\\").replace("'", "\\'")
+                   .replace("\n", "\\n").replace("\t", "\\t").replace("\r", "\\r"))
+        return "$'" + escaped + "'"
+    return shlex.quote(arg)
+
+
+def restore_command(argv, session_id, arities):
+    kept = []
+    for option, tokens in split_options(argv, arities):
+        if option is None:
+            continue
+        if option in SESSION_OPTIONS:
+            continue
+        kept.extend(tokens)
+    if session_id is not None:
+        kept.extend(["--resume", session_id])
+    return " ".join(["claude"] + [quote(arg) for arg in kept])
+
+
+def session_id_from_argv(argv, arities):
+    for option, tokens in split_options(argv, arities):
+        if option not in ("--session-id", "--resume", "-r"):
+            continue
+        value = tokens[-1].split("=", 1)[-1]
+        if UUID.match(value):
+            return value
+    return None
+
+
+def process_argv(pid):
+    libc = ctypes.CDLL(None, use_errno=True)
+    size = ctypes.c_size_t(1 << 20)
+    buf = ctypes.create_string_buffer(size.value)
+    mib = (ctypes.c_int * 3)(1, 49, pid)  # CTL_KERN, KERN_PROCARGS2
+    if libc.sysctl(mib, 3, buf, ctypes.byref(size), None, 0) != 0:
+        return None
+    raw = buf.raw[:size.value]
+    argc = int.from_bytes(raw[:4], sys.byteorder)
+    rest = raw[4:]
+    rest = rest[rest.index(b"\0"):].lstrip(b"\0")  # skip exec path and padding
+    argv = rest.split(b"\0")[:argc]
+    return [arg.decode("utf-8", "surrogateescape") for arg in argv]
+
+
+def claude_processes():
+    """Maps (session, window index, pane index) to the pid of the claude process in that pane."""
+    panes = subprocess.run(
+        ["tmux", "list-panes", "-a", "-F",
+         "#{session_name}\t#{window_index}\t#{pane_index}\t#{pane_pid}"],
+        capture_output=True, text=True, check=True).stdout
+    children = {}
+    ps = subprocess.run(["ps", "-axo", "pid=,ppid="], capture_output=True, text=True, check=True)
+    for line in ps.stdout.splitlines():
+        pid, ppid = line.split()
+        children.setdefault(ppid, []).append(int(pid))
+    found = {}
+    for line in panes.splitlines():
+        session, window, pane, pane_pid = line.split("\t")
+        for pid in children.get(pane_pid, []):
+            argv = process_argv(pid)
+            if argv and os.path.basename(argv[0]) == "claude":
+                found[(session, window, pane)] = (pid, argv)
+                break
+    return found
+
+
+def session_id_of(pid):
+    try:
+        data = json.loads((pathlib.Path.home() / ".claude" / "sessions" / f"{pid}.json").read_text())
+    except (OSError, ValueError):
+        return None
+    return data.get("sessionId")
+
+
+def has_transcript(session_id):
+    return any((pathlib.Path.home() / ".claude" / "projects").glob(f"*/{session_id}.jsonl"))
+
+
+def main(snapshot):
+    help_text = subprocess.run(["claude", "--help"], capture_output=True, text=True,
+                               timeout=30, check=True).stdout
+    arities = parse_option_arities(help_text)
+    processes = claude_processes()
+
+    lines = pathlib.Path(snapshot).read_text().split("\n")
+    changed = False
+    for index, line in enumerate(lines):
+        fields = line.split("\t")
+        if fields[0] != "pane" or len(fields) != 11:
+            continue
+        if not re.match(r"^:claude( |$)", fields[10]):
+            continue
+        process = processes.get((fields[1], fields[2], fields[5]))
+        if process is None:
+            continue
+        pid, argv = process
+        session_id = session_id_of(pid) or session_id_from_argv(argv, arities)
+        if session_id is not None and not has_transcript(session_id):
+            session_id = None
+        fields[10] = ":" + restore_command(argv, session_id, arities)
+        rewritten = "\t".join(fields)
+        if rewritten != line:
+            lines[index] = rewritten
+            changed = True
+
+    if changed:
+        tmp = f"{snapshot}.claude"
+        pathlib.Path(tmp).write_text("\n".join(lines))
+        os.replace(tmp, snapshot)
+
+
+if __name__ == "__main__":
+    main(sys.argv[1])
