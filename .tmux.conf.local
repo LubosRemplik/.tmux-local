@@ -1,4 +1,8 @@
-# : << EOF
+# : << 'EOF'
+# ^ keep the delimiter quoted: oh-my-tmux pipes this file through sh, and an
+#   unquoted heredoc runs every backtick / $(...) below as a command, so a
+#   comment mentioning claude in backticks started a headless Claude session
+#   on each config load
 # https://github.com/gpakosz/.tmux
 # (‑●‑●)> dual licensed under the WTFPL v2 license and the MIT license,
 #         without any warranty.
