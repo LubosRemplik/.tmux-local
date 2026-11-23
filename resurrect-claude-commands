@@ -13,9 +13,12 @@
 # id from ~/.claude/sessions/<pid>.json. Options that pick or name a session,
 # and the positional prompt, are dropped; every kept argument is quoted. A
 # session without a transcript (no turn yet) has nothing to resume and comes
-# back as a fresh `claude <original options>`.
+# back as a fresh `claude <original options>`. A session with Remote Control
+# connected (also when switched on later with /remote-control) keeps it.
 #
 # Usage: resurrect-claude-commands <snapshot file>   (edits it in place)
+#        resurrect-claude-commands --command <pid>   (prints the command for
+#                                                     one running claude)
 
 import ctypes
 import json
@@ -95,14 +98,19 @@ def quote(arg):
     return shlex.quote(arg)
 
 
-def restore_command(argv, session_id, arities):
+def restore_command(argv, session_id, arities, remote_control_name=None):
     kept = []
+    has_remote_control = False
     for option, tokens in split_options(argv, arities):
         if option is None:
             continue
         if option in SESSION_OPTIONS:
             continue
+        if option == "--remote-control":
+            has_remote_control = True
         kept.extend(tokens)
+    if remote_control_name is not None and not has_remote_control:
+        kept.extend(["--remote-control", remote_control_name])
     if session_id is not None:
         kept.extend(["--resume", session_id])
     return " ".join(["claude"] + [quote(arg) for arg in kept])
@@ -155,22 +163,46 @@ def claude_processes():
     return found
 
 
-def session_id_of(pid):
+def session_file(pid):
     try:
-        data = json.loads((pathlib.Path.home() / ".claude" / "sessions" / f"{pid}.json").read_text())
+        return json.loads((pathlib.Path.home() / ".claude" / "sessions" / f"{pid}.json").read_text())
     except (OSError, ValueError):
+        return {}
+
+
+def remote_control_name(session):
+    if not session.get("bridgeSessionId"):
         return None
-    return data.get("sessionId")
+    return session.get("name") or ""
 
 
 def has_transcript(session_id):
     return any((pathlib.Path.home() / ".claude" / "projects").glob(f"*/{session_id}.jsonl"))
 
 
-def main(snapshot):
+def option_arities():
     help_text = subprocess.run(["claude", "--help"], capture_output=True, text=True,
                                timeout=30, check=True).stdout
-    arities = parse_option_arities(help_text)
+    return parse_option_arities(help_text)
+
+
+def command_for(pid, argv, arities):
+    session = session_file(pid)
+    session_id = session.get("sessionId") or session_id_from_argv(argv, arities)
+    if session_id is not None and not has_transcript(session_id):
+        session_id = None
+    return restore_command(argv, session_id, arities, remote_control_name(session))
+
+
+def print_command(pid):
+    argv = process_argv(pid)
+    if not argv or os.path.basename(argv[0]) != "claude":
+        sys.exit(f"pid {pid} is not a claude process")
+    print(command_for(pid, argv, option_arities()))
+
+
+def main(snapshot):
+    arities = option_arities()
     processes = claude_processes()
 
     lines = pathlib.Path(snapshot).read_text().split("\n")
@@ -185,10 +217,7 @@ def main(snapshot):
         if process is None:
             continue
         pid, argv = process
-        session_id = session_id_of(pid) or session_id_from_argv(argv, arities)
-        if session_id is not None and not has_transcript(session_id):
-            session_id = None
-        fields[10] = ":" + restore_command(argv, session_id, arities)
+        fields[10] = ":" + command_for(pid, argv, arities)
         rewritten = "\t".join(fields)
         if rewritten != line:
             lines[index] = rewritten
@@ -201,4 +230,7 @@ def main(snapshot):
 
 
 if __name__ == "__main__":
-    main(sys.argv[1])
+    if sys.argv[1] == "--command":
+        print_command(int(sys.argv[2]))
+    else:
+        main(sys.argv[1])

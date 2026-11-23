@@ -639,3 +639,9 @@ bind m run-shell -b "~/.claude/scripts/tmux-claude-model.sh"
 # switching accounts. Connected sessions are disconnected and reconnected;
 # only idle ones are touched, the rest are listed as skipped.
 bind R run-shell -b "~/.claude/scripts/tmux-claude-remote.sh"
+
+# Restart ALL running Claude sessions, e.g. after a Claude Code CLI update
+# (prefix + N, "N" as new version). Each pane gets a fresh shell that resumes
+# the same conversation with the same options; seen-state carries over, and
+# sessions cut off mid-turn (busy, waiting) come back unseen.
+bind N confirm-before -p "Restart all Claude sessions? (y/n)" 'run-shell -b "~/.claude/scripts/tmux-claude-restart.sh"'
