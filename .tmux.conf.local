@@ -523,6 +523,9 @@ set -g @resurrect-hook-post-restore-all '/Users/lubos/.tmux-local/resurrect-rest
 # not exit before continuum restore re-creates the sessions.
 set -s exit-empty off
 set -g @plugin 'tmux-plugins/tmux-sessionist'
+# Its new-session prompt (switches to the session when the name exists) goes
+# on prefix + c instead of its default C, which belongs to Remote Control.
+set -g @sessionist-new 'c'
 
 # fuzzy-pick text (URLs, paths, hashes, words) from pane contents
 # default binding: prefix + Tab
@@ -574,9 +577,6 @@ set -g theme terminal
 # @claude_info (model/effort) is published by the Claude Code statusline hook
 set -g pane-border-status top
 set -g pane-border-format "#{?#{m:[0-9]*,#{pane_current_command}}, #{pane_title}#{?@claude_info, ⟨#{@claude_info}⟩,} ,}"
-
-# prompt for session name when creating a new session
-bind c command-prompt -p new-session 'new-session -s "%%"'
 
 # auto-register new sessions in workspaces.conf with the workspace of the
 # window they were created in (inferred from the client's previous session);
@@ -635,13 +635,13 @@ set-environment -gu CLAUDE_PID
 bind m run-shell -b "~/.claude/scripts/tmux-claude-model.sh"
 
 # (Re)connect Remote Control in ALL running Claude sessions, oldest first, each
-# named after its Claude session (prefix + R, "R" as remote) — run after
+# named after its Claude session (prefix + C, "C" as connect) — run after
 # switching accounts. Connected sessions are disconnected and reconnected;
 # only idle ones are touched, the rest are listed as skipped.
-bind R run-shell -b "~/.claude/scripts/tmux-claude-remote.sh"
+bind C run-shell -b "~/.claude/scripts/tmux-claude-remote.sh"
 
 # Restart ALL running Claude sessions, e.g. after a Claude Code CLI update
-# (prefix + N, "N" as new version). Each pane gets a fresh shell that resumes
+# (prefix + R, "R" as restart). Each pane gets a fresh shell that resumes
 # the same conversation with the same options; seen-state carries over, and
 # sessions cut off mid-turn (busy, waiting) come back unseen.
-bind N confirm-before -p "Restart all Claude sessions? (y/n)" 'run-shell -b "~/.claude/scripts/tmux-claude-restart.sh"'
+bind R confirm-before -p "Restart all Claude sessions? (y/n)" 'run-shell -b "~/.claude/scripts/tmux-claude-restart.sh"'
