@@ -523,9 +523,6 @@ set -g @resurrect-hook-post-restore-all '/Users/lubos/.tmux-local/resurrect-rest
 # not exit before continuum restore re-creates the sessions.
 set -s exit-empty off
 set -g @plugin 'tmux-plugins/tmux-sessionist'
-# Its new-session prompt (switches to the session when the name exists) goes
-# on prefix + c instead of its default C, which belongs to Remote Control.
-set -g @sessionist-new 'c'
 
 # fuzzy-pick text (URLs, paths, hashes, words) from pane contents
 # default binding: prefix + Tab
@@ -578,6 +575,9 @@ set -g theme terminal
 set -g pane-border-status top
 set -g pane-border-format "#{?#{m:[0-9]*,#{pane_current_command}}, #{pane_title}#{?@claude_info, ⟨#{@claude_info}⟩,} ,}"
 
+# prompt for session name when creating a new session
+bind c command-prompt -p new-session 'new-session -s "%%"'
+
 # auto-register new sessions in workspaces.conf with the workspace of the
 # window they were created in (inferred from the client's previous session);
 # auto-registered entries (marked `# auto`) are removed again on session close
@@ -598,11 +598,7 @@ bind Q display-panes
 # Claude Code: keep window-status icons fresh + quick fuzzy session jumper
 run-shell -b "~/.claude/scripts/tmux-claude-status.sh 3 >/dev/null 2>&1"
 bind s display-popup -E -w 70% -h 50% "~/.claude/scripts/tmux-claude-switcher.sh"
-# Archive the current window (Claude session ends, resumable) / recover popup.
-# The recover popup takes r (the frequent action); the oh-my-tmux config
-# reload that lived there moves to Shift+T.
-bind a run-shell "~/.claude/scripts/tmux-claude-archive.sh archive"
-bind r display-popup -E -w 70% -h 50% "~/.claude/scripts/tmux-claude-archive.sh recover"
+# The oh-my-tmux config reload moved off r (Claude restart, below) to Shift+T.
 bind T source-file ~/.tmux.conf \; display-message "~/.tmux.conf reloaded"
 # Re-stamp immediately on window/session switch so a finished session flips
 # 🟠 -> ✅ the moment its window gets focus, not up to 3 s later on the next
@@ -635,13 +631,13 @@ set-environment -gu CLAUDE_PID
 bind m run-shell -b "~/.claude/scripts/tmux-claude-model.sh"
 
 # (Re)connect Remote Control in ALL running Claude sessions, oldest first, each
-# named after its Claude session (prefix + C, "C" as connect) — run after
+# named after its Claude session (prefix + R, "R" as remote) — run after
 # switching accounts. Connected sessions are disconnected and reconnected;
 # only idle ones are touched, the rest are listed as skipped.
-bind C run-shell -b "~/.claude/scripts/tmux-claude-remote.sh"
+bind R run-shell -b "~/.claude/scripts/tmux-claude-remote.sh"
 
 # Restart ALL running Claude sessions, e.g. after a Claude Code CLI update
-# (prefix + R, "R" as restart). Each pane gets a fresh shell that resumes
+# (prefix + r, "r" as restart). Each pane gets a fresh shell that resumes
 # the same conversation with the same options; seen-state carries over, and
 # sessions cut off mid-turn (busy, waiting) come back unseen.
-bind R confirm-before -p "Restart all Claude sessions? (y/n)" 'run-shell -b "~/.claude/scripts/tmux-claude-restart.sh"'
+bind r confirm-before -p "Restart all Claude sessions? (y/n)" 'run-shell -b "~/.claude/scripts/tmux-claude-restart.sh"'
