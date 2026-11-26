@@ -359,6 +359,12 @@ set -g status-position bottom
 
 bind r source-file ~/.tmux.conf \; display-message "~/.tmux.conf reloaded"
 
+# tmux 3.8 sorts the tree by session id; sort by name so the numeric
+# prefixes ("1 Remplikovi", "2 HKDev") put those sessions on top.
+# -N: no preview; window rows get the Claude status icons (@cc_status,
+# set by ~/.claude/scripts/tmux-claude-status.sh) before the default format.
+bind w choose-tree -NZw -O name -F '#{?window_format,#{?@cc_status,#{@cc_status} ,},}#{E:tree_mode_format}'
+
 #bind-key -n C-h select-pane -L
 #bind-key -n C-j select-pane -D
 #bind-key -n C-k select-pane -U
