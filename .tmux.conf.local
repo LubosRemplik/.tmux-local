@@ -359,11 +359,13 @@ set -g status-position bottom
 
 bind r source-file ~/.tmux.conf \; display-message "~/.tmux.conf reloaded"
 
-# tmux 3.8 sorts the tree by session id; sort by name so the numeric
-# prefixes ("1 Remplikovi", "2 HKDev") put those sessions on top.
+# One sort order applies to sessions and windows alike. `index` keeps windows
+# in tab order; sessions follow their id, which matches the name order
+# ("1 Remplikovi", "2 HKDev", EM*) because tmux-resurrect restores sessions
+# sorted by name. A session created later sits last until the next restore.
 # -N: no preview; window rows get the Claude status icons (@cc_status,
 # set by ~/.claude/scripts/tmux-claude-status.sh) before the default format.
-bind w choose-tree -NZw -O name -F '#{?window_format,#{?@cc_status,#{@cc_status} ,},}#{E:tree_mode_format}'
+bind w choose-tree -NZw -O index -F '#{?window_format,#{?@cc_status,#{@cc_status} ,},}#{E:tree_mode_format}'
 
 #bind-key -n C-h select-pane -L
 #bind-key -n C-j select-pane -D
