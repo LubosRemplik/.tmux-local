@@ -1,18 +1,33 @@
 # shellcheck shell=bash
 # Sdílené funkce pro mapování tmux session → macOS workspace (Space).
-# Config: řádek `<session> <workspace>`; `* <workspace>` je default;
+# Config: řádek `<session> <workspace>`; jméno session smí obsahovat mezery,
+# workspace je poslední slovo řádku; `* <workspace>` je default;
 # `#` zahajuje komentář. Používá tmux-claude-switcher.sh a workspaces-register.
 
-WORKSPACES_CONF="$HOME/.tmux-local/workspaces.conf"
+WORKSPACES_CONF="${WORKSPACES_CONF:-$HOME/.tmux-local/workspaces.conf}"
+
+# Prints one `<session>\t<workspace>` line per config entry.
+workspace_entries() {
+  [[ -r "$WORKSPACES_CONF" ]] || return 1
+  awk '
+    { sub(/[ \t]*#.*$/, "") }
+    /^[ \t]*$/ { next }
+    {
+      ws = $NF
+      name = $0
+      sub(/[ \t]+[^ \t]+[ \t]*$/, "", name)
+      sub(/^[ \t]+/, "", name)
+      print name "\t" ws
+    }
+  ' "$WORKSPACES_CONF"
+}
 
 workspace_for_session() {
-  local session="$1" name ws _rest default=""
-  [[ -r "$WORKSPACES_CONF" ]] || return 1
-  while read -r name ws _rest; do
-    case "$name" in ''|\#*) continue ;; esac
+  local session="$1" name ws default=""
+  while IFS=$'\t' read -r name ws; do
     [[ "$name" == "*" ]] && { default="$ws"; continue; }
     [[ "$name" == "$session" ]] && { printf '%s\n' "$ws"; return 0; }
-  done < "$WORKSPACES_CONF"
+  done < <(workspace_entries)
   [[ -n "$default" ]] && { printf '%s\n' "$default"; return 0; }
   return 1
 }
@@ -30,10 +45,9 @@ client_for_workspace() {
 
 # Je session v configu vyjmenovaná explicitně (ne jen přes `*` default)?
 session_listed() {
-  local session="$1" name _rest
-  [[ -r "$WORKSPACES_CONF" ]] || return 1
-  while read -r name _rest; do
+  local session="$1" name _ws
+  while IFS=$'\t' read -r name _ws; do
     [[ "$name" == "$session" ]] && return 0
-  done < "$WORKSPACES_CONF"
+  done < <(workspace_entries)
   return 1
 }

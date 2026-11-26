@@ -13,5 +13,14 @@ session="${1:-}"
 [[ -w "$WORKSPACES_CONF" ]] || exit 0
 
 tmp="${WORKSPACES_CONF}.tmp.$$"
-awk -v s="$session" '!($1 == s && /# auto$/)' "$WORKSPACES_CONF" > "$tmp" \
-  && mv "$tmp" "$WORKSPACES_CONF"
+# Jméno session smí obsahovat mezery: je to vše před posledním slovem (workspace).
+awk -v s="$session" '
+  /# auto$/ {
+    name = $0
+    sub(/[ \t]*#.*$/, "", name)
+    sub(/[ \t]+[^ \t]+[ \t]*$/, "", name)
+    sub(/^[ \t]+/, "", name)
+    if (name == s) next
+  }
+  { print }
+' "$WORKSPACES_CONF" > "$tmp" && mv "$tmp" "$WORKSPACES_CONF"
